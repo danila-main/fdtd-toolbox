@@ -1,10 +1,10 @@
 ﻿
 
 /*! \file 
-* \brief Основная программа.
+* \brief Read input
 *
 * 
-* \author Крюков А.А. anton.krv@gmail.com
+* \author A.Kryukov anton.krv@gmail.com
 */
 
 /*! Отменяет предупреждения об опастности функций вывода. */
@@ -16,9 +16,9 @@
 #include <math.h>
 #include <limits.h>
 #include <float.h>
-#include "../../include/globals.h"
-#include "../../include/data.h"
-#include "../../include/constants.h"
+#include "globals.h"
+#include "data.h"
+#include "constants.h"
 
 /*!
 * Чтение файла с именем проекта и параметрами запуска программы.

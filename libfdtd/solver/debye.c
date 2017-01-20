@@ -1,13 +1,13 @@
 ﻿
 /*! \file 
-* \brief функции расчета дисперсионной модели Дебая.
-* \author Крюков А.А. anton.krv@gmail.com
+* \brief Debye dispersion model
+* \author A. Kryukov anton.krv@gmail.com
 */
 
-#include "../../include/globals.h"
-#include "../../include/constants.h"
-#include "../../include/functions.h"
-#include "../../include/fdtd.h"
+#include "globals.h"
+#include "constants.h"
+#include "functions.h"
+#include "fdtd.h"
 
 /*!
 * \brief Структура для описания параметров материала.

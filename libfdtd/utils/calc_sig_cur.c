@@ -1,20 +1,20 @@
 ﻿
 
 /*! \file 
-* \brief Функции расчета внешних токов, проводимости и т.п.
+* \brief Calculate conductivity and external currents 
 *
 * Функции заполняют массивы токов, проводимости, вторичных електронов, концентрации ионов.
 * Для расчета используются физические модели из файла src/user/user.c
-* \author Крюков А.А. anton.krv@gmail.com
+* \author A. Kryukov anton.krv@gmail.com
 */
 
 #include <stdlib.h>
 #include <math.h>
 
-#include "../../include/globals.h"
-#include "../../include/constants.h"
-#include "../../include/functions.h"
-#include "../../include/fdtd.h"
+#include "globals.h"
+#include "constants.h"
+#include "functions.h"
+#include "fdtd.h"
 
 /*!
 * \brief Заполнение массива проводимости.

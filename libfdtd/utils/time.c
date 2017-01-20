@@ -1,9 +1,9 @@
 ﻿
 /*! \file 
-* \brief Системное время.
+* \brief Time functions
 *
 * Функция возвращает системное время в секундах.
-* \author Крюков А.А. anton.krv@gmail.com
+* \author A.Kryukov anton.krv@gmail.com
 */
 
 #if defined(WIN32)

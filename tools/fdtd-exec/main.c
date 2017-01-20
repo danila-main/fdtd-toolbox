@@ -18,10 +18,10 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "../../include/globals.h"
-#include "../../include/functions.h"
-#include "../../include/fdtd.h"
-#include "../../include/constants.h"
+#include "globals.h"
+#include "constants.h"
+#include "functions.h"
+#include "fdtd.h"
 
 /*! Имя файла содержащего имя проекта и параметры запуска программы. */
 #define START_NAME "START_N"

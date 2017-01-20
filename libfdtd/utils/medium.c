@@ -1,13 +1,11 @@
 ﻿
-/*! \file 
-* \brief ‘ункции вычисл¤ющие усрдненную сеточную проводимость, диэлектрическую,
-         магнитную проницаемость, градиент фронта.
-* \author  рюков ј.ј. anton.krv@gmail.com
+/*! \file Calculate permeability, permittivity, conductivity and wavefront gradient
+* \author A.Kryukov anton.krv@gmail.com
 */
 
 #include <math.h>
-#include "../../include/globals.h"
-#include "../../include/constants.h"
+#include "globals.h"
+#include "constants.h"
 
 /*!
 * ”средненна¤ сеточна¤ проводимость.
