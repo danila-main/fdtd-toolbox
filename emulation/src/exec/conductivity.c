@@ -1,12 +1,12 @@
 ﻿
 /*! \file 
-* \brief Conductivity calculations.
-* \author A.Kryukov anton.krv@gmail.com
+* \brief Функции расчета проводимости.
+* \author Крюков А.А. anton.krv@gmail.com
 */
 
 #include <math.h>
-#include "globals.h"
-#include "constants.h"
+#include "../../include/globals.h"
+#include "../../include/constants.h"
 
 //вычисление тока проводимости в точке 
 //(модель 2 - для полупроводников по формулам )

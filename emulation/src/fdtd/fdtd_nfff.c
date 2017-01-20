@@ -1,15 +1,15 @@
 ﻿
 /*! \file 
-* \brief Radiation pattern calculations.
-* \author A.Kryukov anton.krv@gmail.com
+* \brief Функции диаграммы направленности.
+* \author Крюков А.А. anton.krv@gmail.com
 */
 
 #include <math.h>
-#include <hdf5/serial/hdf5.h>
-#include "globals.h"
-#include "constants.h"
-#include "functions.h"
-#include "fdtd.h"
+#include <hdf5.h>
+#include "../../include/globals.h"
+#include "../../include/constants.h"
+#include "../../include/functions.h"
+#include "../../include/fdtd.h"
 
 extern void append_nfff_data(const char *file_name, const double time);
 

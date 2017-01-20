@@ -1,13 +1,13 @@
 ﻿
 /*! \file
-* \brief Mur's ABC.
-* \author A. Kryukov anton.krv@gmail.com
+* \brief Функции расчета полей с MUR на границе.
+* \author Крюков А.А. anton.krv@gmail.com
 */
 
-#include "globals.h"
-#include "constants.h"
-#include "functions.h"
-#include "fdtd.h"
+#include "../../include/globals.h"
+#include "../../include/constants.h"
+#include "../../include/functions.h"
+#include "../../include/fdtd.h"
 
 mur_double **mur_ex_y_min;/*!< массив y- компоненты для поля Ex. */
 mur_double **mur_ex_y_max;/*!< массив y- компоненты для поля Ex. */
