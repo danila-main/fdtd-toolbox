@@ -1,13 +1,13 @@
 ﻿
 /*! \file 
-* \brief функции расчета дисперсионной модели Дебая.
-* \author Крюков А.А. anton.krv@gmail.com
+* \brief Drude dispersion model.
+* \author А.Kryukov anton.krv@gmail.com
 */
 
-#include "../../include/globals.h"
-#include "../../include/constants.h"
-#include "../../include/functions.h"
-#include "../../include/fdtd.h"
+#include "globals.h"
+#include "constants.h"
+#include "functions.h"
+#include "fdtd.h"
 
 /*!
 * \brief Структура для описания параметров материала.
@@ -15,33 +15,34 @@
 typedef struct
 {
     int nPoles;//число полюсов
-    double *deltaEps;//изменение диэлектрической проницаемости на данном полюсе
-    double *tauEps;//время релаксации на данном полюсе
+    double *res_freq;//резонансная частота на данном полюсе
+    double *col_freq;//обратное время релаксации на данном полюсе
+    // время релаксации не может быть нулевым, а вот частота столкновений в плазме может
 
-    double *km;//вспомогательные массивы
+    double *am;//вспомогательные массивы
     double *bm;
-    double eps;//эффективная диэлектрическая проницаемость
-} _debyeMaterial;
+    double sig;//эффективная проводимость
+} _drudeMaterial;
 
-static _debyeMaterial matData;//материал
+static _drudeMaterial matData;//материал
 
 /*!
 * \brief Структура для хранения параметров расчета в точке.
 */
 typedef struct
 {
-    _debyeMaterial *material;//материал
+    _drudeMaterial *material;//материал
     double *Jpol;//компоненты поляризационного тока для каждого полюса
-} _debye;
+} _drude;
 
-_debye ****debye_Jx;/*!< массив x-компонеты поляризационного тока для электрического поля. */
-_debye ****debye_Jy;/*!< массив y-компонеты поляризационного тока для электрического поля. */
-_debye ****debye_Jz;/*!< массив z-компонеты поляризационного тока для электрического поля. */
+_drude ****drude_Jx;/*!< массив x-компонеты поляризационного тока для электрического поля. */
+_drude ****drude_Jy;/*!< массив y-компонеты поляризационного тока для электрического поля. */
+_drude ****drude_Jz;/*!< массив z-компонеты поляризационного тока для электрического поля. */
 
-static _debye *_init_data(_debyeMaterial *material)
+static _drude *_init_data(_drudeMaterial *material)
 {
-    _debye *data;
-    PARMS_malloc(data, 1, _debye);
+    _drude *data;
+    PARMS_malloc(data, 1, _drude);
 
     data->material = material;
     PARMS_malloc(data->Jpol, material->nPoles, double);
@@ -52,81 +53,81 @@ static _debye *_init_data(_debyeMaterial *material)
 }
 
 //инициализация дисперсионного материала
-void init_debye_data()
+void init_drude_data()
 {
     int i, j, k;
     grid _grd = &fdtd_grd;
 
     matData.nPoles = 1;
-    PARMS_malloc(matData.deltaEps, matData.nPoles, double);
-    PARMS_malloc(matData.tauEps, matData.nPoles, double);
-    PARMS_malloc(matData.km, matData.nPoles, double);
+    PARMS_malloc(matData.res_freq, matData.nPoles, double);
+    PARMS_malloc(matData.col_freq, matData.nPoles, double);
+    PARMS_malloc(matData.am, matData.nPoles, double);
     PARMS_malloc(matData.bm, matData.nPoles, double);
 
     for (i = 0; i < matData.nPoles; ++i) {
-        matData.deltaEps[i] = 1.0;
-        matData.tauEps[i] = 1.0/(_pi*5.0e08);
-        matData.km[i] = 0.0;
+        matData.res_freq[i] = 1.0e+09;
+        matData.col_freq[i] = 1.0e+02;
+        matData.am[i] = 0.0;
         matData.bm[i] = 0.0;
     }
 
-    matData.eps = 0.0;
+    matData.sig = 0.0;
 
-    PARMS_malloc(debye_Jx, _grd->nx, _debye***);
+    PARMS_malloc(drude_Jx, _grd->nx, _drude***);
     for (i = 0; i < _grd->nx; ++i) {
-        PARMS_malloc(debye_Jx[i], _grd->ny+1, _debye**);
+        PARMS_malloc(drude_Jx[i], _grd->ny+1, _drude**);
         for (j = 0; j < _grd->ny+1; ++j) {
-            PARMS_malloc(debye_Jx[i][j], _grd->nz+1, _debye*);
+            PARMS_malloc(drude_Jx[i][j], _grd->nz+1, _drude*);
             for (k = 0; k < _grd->nz+1; ++k) {
-                debye_Jx[i][j][k] = _init_data(&matData);
+                drude_Jx[i][j][k] = _init_data(&matData);
             }
         }
     }
 
-    PARMS_malloc(debye_Jy, _grd->ny, _debye***);
+    PARMS_malloc(drude_Jy, _grd->ny, _drude***);
     for (j = 0; j < _grd->ny; ++j) {
-        PARMS_malloc(debye_Jy[j], _grd->nz+1, _debye**);
+        PARMS_malloc(drude_Jy[j], _grd->nz+1, _drude**);
         for (k = 0; k < _grd->nz+1; ++k) {
-            PARMS_malloc(debye_Jy[j][k], _grd->nx+1, _debye*);
+            PARMS_malloc(drude_Jy[j][k], _grd->nx+1, _drude*);
             for (i = 0; i < _grd->nx+1; ++i) {
-                debye_Jy[j][k][i] = _init_data(&matData);
+                drude_Jy[j][k][i] = _init_data(&matData);
             }
         }
     }
 
-    PARMS_malloc(debye_Jz, _grd->nz, _debye***);
+    PARMS_malloc(drude_Jz, _grd->nz, _drude***);
     for (k = 0; k < _grd->nz; ++k) {
-        PARMS_malloc(debye_Jz[k], _grd->nx+1, _debye**);
+        PARMS_malloc(drude_Jz[k], _grd->nx+1, _drude**);
         for (i = 0; i < _grd->nx+1; ++i) {
-            PARMS_malloc(debye_Jz[k][i], _grd->ny+1, _debye*);
+            PARMS_malloc(drude_Jz[k][i], _grd->ny+1, _drude*);
             for (j = 0; j < _grd->ny+1; ++j) {
-                debye_Jz[k][i][j] = _init_data(&matData);
+                drude_Jz[k][i][j] = _init_data(&matData);
             }
         }
     }
 }
 
 //расчет дисперсионного материала на каждом шаге
-void update_debye_data(double ht)
+void update_drude_data(double ht)
 {
     int i;
 
-    matData.eps = 0.0;
+    matData.sig = 0.0;
 
     for (i = 0; i < matData.nPoles; ++i) {
-        matData.km[i] = (2.0*matData.tauEps[i] - ht)/(2.0*matData.tauEps[i] + ht);
-        matData.bm[i] = _pi4*((2.0*matData.deltaEps[i]*ht)/(2.0*matData.tauEps[i] + ht));
+        matData.am[i] = (2.0 - ht*matData.col_freq[i])/(2.0 + ht*matData.col_freq[i]);
+        matData.bm[i] = _pi4*((matData.res_freq[i]*matData.res_freq[i]*ht)/(2.0 + ht*matData.col_freq[i]));
 
-        matData.eps += matData.bm[i];
+        matData.sig += matData.bm[i];
     }
 
-    matData.eps *= 0.5;//получили поправку для проницаемости
+    matData.sig *= 0.5;//получили поправку для проводимости
 }
 
 //никогда не вызывать эти функции в CPML слое!!!!!
 
 //вычисление Ex в точке
-void calc_Ex_point_debye(int i, int j, int k)
+void calc_Ex_point_drude(int i, int j, int k)
 {
     double ht = fdtd_ht;
     grid _grd = &fdtd_grd;
@@ -135,36 +136,36 @@ void calc_Ex_point_debye(int i, int j, int k)
     double eps_tmp = fun_eps(i, j, k, EX_ID);// считаем, что диэлетрическая проницаемость для бесконечной частоты задана базовым материалом
     int l;
     double polarJx = 0.0;
-    double dEx;
-    _debyeMaterial *_mat = debye_Jx[i-1][j][k]->material;
+    double Ex;
+    _drudeMaterial *_mat = drude_Jx[i-1][j][k]->material;
 
     //вычисляем поляризационный ток
     for (l = 0; l < _mat->nPoles; ++l) {
-        polarJx += debye_Jx[i-1][j][k]->Jpol[l]*(1.0 + _mat->km[l]);
+        polarJx += drude_Jx[i-1][j][k]->Jpol[l]*(1.0 + _mat->am[l]);
     }
 
-    polarJx += 0.5;
+    polarJx *= 0.5;
 
-    eps_tmp += _mat->eps;//добавили дисперсионную поправку
+    sig_tmp += _mat->sig;//добавили дисперсионную поправку
 
     dhy = (fdtd_Hy[j][k][i-1] - fdtd_Hy[j][k-1][i-1])/_grd->dzi[k];
     dhz = (fdtd_Hz[k][i-1][j] - fdtd_Hz[k][i-1][j-1])/_grd->dyi[j];
 
-    dEx = -fdtd_Ex[i-1][j][k];//-Ex[n]
+    Ex = fdtd_Ex[i-1][j][k];//Ex[n]
 
     fdtd_Ex[i-1][j][k] = ((eps_tmp - 0.5*ht*sig_tmp)*fdtd_Ex[i-1][j][k]
                     + ht*_cl*(dhz - dhy) - ht*(_pi4*fdtd_Jx[i-1][j][k] + polarJx))/(eps_tmp + 0.5*ht*sig_tmp);
 
-    dEx += fdtd_Ex[i-1][j][k];//Ex[n+1] - Ex[n]
-    dEx /= ht;//(Ex[n+1] - Ex[n])/ht
+    Ex += fdtd_Ex[i-1][j][k];//Ex[n+1] + Ex[n]
+    Ex *= 0.5;//(Ex[n+1] + Ex[n])/2
 
     for (l = 0; l < _mat->nPoles; ++l) {//расчет поляризационного тока на след шаге
-        debye_Jx[i-1][j][k]->Jpol[l] = _mat->km[l]*debye_Jx[i-1][j][k]->Jpol[l] + _mat->bm[l]*dEx;
+        drude_Jx[i-1][j][k]->Jpol[l] = _mat->am[l]*drude_Jx[i-1][j][k]->Jpol[l] + _mat->bm[l]*Ex;
     }
 }
 
 //вычисление Ey в точке
-void calc_Ey_point_debye(int i, int j, int k)
+void calc_Ey_point_drude(int i, int j, int k)
 {
     double ht = fdtd_ht;
     grid _grd = &fdtd_grd;
@@ -173,36 +174,36 @@ void calc_Ey_point_debye(int i, int j, int k)
     double eps_tmp = fun_eps(i, j, k, EY_ID);// считаем, что диэлетрическая проницаемость для бесконечной частоты задана базовым материалом
     int l;
     double polarJy = 0.0;
-    double dEy;
-    _debyeMaterial *_mat = debye_Jy[j-1][k][i]->material;
+    double Ey;
+    _drudeMaterial *_mat = drude_Jy[j-1][k][i]->material;
 
     //вычисляем поляризационный ток
     for (l = 0; l < _mat->nPoles; ++l) {
-        polarJy += debye_Jy[j-1][k][i]->Jpol[l]*(1.0 + _mat->km[l]);
+        polarJy += drude_Jy[j-1][k][i]->Jpol[l]*(1.0 + _mat->am[l]);
     }
 
-    polarJy += 0.5;
+    polarJy *= 0.5;
 
-    eps_tmp += _mat->eps;//добавили дисперсионную поправку
+    sig_tmp += _mat->sig;//добавили дисперсионную поправку
 
     dhx = (fdtd_Hx[i][j-1][k] - fdtd_Hx[i][j-1][k-1])/_grd->dzi[k];
     dhz = (fdtd_Hz[k][i][j-1] - fdtd_Hz[k][i-1][j-1])/_grd->dxi[i];
 
-    dEy = -fdtd_Ey[j-1][k][i];//-Ey[n]
+    Ey = fdtd_Ey[j-1][k][i];//Ey[n]
 
     fdtd_Ey[j-1][k][i] = ((eps_tmp - 0.5*ht*sig_tmp)*fdtd_Ey[j-1][k][i]
                     + ht*_cl*(dhx - dhz) - ht*(_pi4*fdtd_Jy[j-1][k][i] + polarJy))/(eps_tmp + 0.5*ht*sig_tmp);
 
-    dEy += fdtd_Ey[j-1][k][i];//Ey[n+1] - Ey[n]
-    dEy /= ht;//(Ey[n+1] - Ey[n])/ht
+    Ey += fdtd_Ey[j-1][k][i];//Ey[n+1] + Ey[n]
+    Ey *= 0.5;//(Ey[n+1] + Ey[n])/2
 
     for (l = 0; l < _mat->nPoles; ++l) {//расчет поляризационного тока на след шаге
-        debye_Jy[j-1][k][i]->Jpol[l] = _mat->km[l]*debye_Jy[j-1][k][i]->Jpol[l] + _mat->bm[l]*dEy;
+        drude_Jy[j-1][k][i]->Jpol[l] = _mat->am[l]*drude_Jy[j-1][k][i]->Jpol[l] + _mat->bm[l]*Ey;
     }
 }
 
 //вычисление Ez в точке
-void calc_Ez_point_debye(int i, int j, int k)
+void calc_Ez_point_drude(int i, int j, int k)
 {
     double ht = fdtd_ht;
     grid _grd = &fdtd_grd;
@@ -211,30 +212,30 @@ void calc_Ez_point_debye(int i, int j, int k)
     double eps_tmp = fun_eps(i, j, k, EZ_ID);// считаем, что диэлетрическая проницаемость для бесконечной частоты задана базовым материалом
     int l;
     double polarJz = 0.0;
-    double dEz;
-    _debyeMaterial *_mat = debye_Jz[k-1][i][j]->material;
+    double Ez;
+    _drudeMaterial *_mat = drude_Jz[k-1][i][j]->material;
 
     //вычисляем поляризационный ток
     for (l = 0; l < _mat->nPoles; ++l) {
-        polarJz += debye_Jz[k-1][i][j]->Jpol[l]*(1.0 + _mat->km[l]);
+        polarJz += drude_Jz[k-1][i][j]->Jpol[l]*(1.0 + _mat->am[l]);
     }
 
-    polarJz += 0.5;
+    polarJz *= 0.5;
 
-    eps_tmp += _mat->eps;//добавили дисперсионную поправку
+    sig_tmp += _mat->sig;//добавили дисперсионную поправку
 
     dhx = (fdtd_Hx[i][j][k-1] - fdtd_Hx[i][j-1][k-1])/_grd->dyi[j];
     dhy = (fdtd_Hy[j][k-1][i] - fdtd_Hy[j][k-1][i-1])/_grd->dxi[i];
 
-    dEz = -fdtd_Ez[k-1][i][j];//-Ez[n]
+    Ez = fdtd_Ez[k-1][i][j];//Ez[n]
 
     fdtd_Ez[k-1][i][j] = ((eps_tmp - 0.5*ht*sig_tmp)*fdtd_Ez[k-1][i][j]
                     + ht*_cl*(dhy - dhx) - ht*(_pi4*fdtd_Jz[k-1][i][j] + polarJz))/(eps_tmp + 0.5*ht*sig_tmp);
 
-    dEz += fdtd_Ez[k-1][i][j];//Ez[n+1] - Ez[n]
-    dEz /= ht;//(Ez[n+1] - Ez[n])/ht
+    Ez += fdtd_Ez[k-1][i][j];//Ez[n+1] + Ez[n]
+    Ez *= 0.5;//(Ez[n+1] + Ez[n])/2
 
     for (l = 0; l < _mat->nPoles; ++l) {
-        debye_Jz[k-1][i][j]->Jpol[l] = _mat->km[l]*debye_Jz[k-1][i][j]->Jpol[l] + _mat->bm[l]*dEz;
+        drude_Jz[k-1][i][j]->Jpol[l] = _mat->am[l]*drude_Jz[k-1][i][j]->Jpol[l] + _mat->bm[l]*Ez;
     }
 }

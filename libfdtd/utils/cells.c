@@ -1,15 +1,15 @@
 ﻿
 /*! \file 
-* \brief Функция выделения памяти.
+* \brief Memory allocation routines  
 *
 * Выделяет память для массивов электромагнитных полей, проводимости, токов, источников вторичных электронов, концентрации ионов.
-* \author Крюков А.А. anton.krv@gmail.com
+* \author A.Kryukov anton.krv@gmail.com
 */
 #include <stdlib.h>
 
-#include "../../include/globals.h"
-#include "../../include/fdtd.h"
-#include "../../include/data.h"
+#include "globals.h"
+#include "fdtd.h"
+#include "data.h"
 
 /*! Выделение памяти для массивов физических величин. */
 void allocateCells()

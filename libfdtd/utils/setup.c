@@ -1,17 +1,17 @@
 ﻿
 
 /*! \file 
-* \brief Определение информации о разбиении области.
+* \brief Domain decomposition information
 *
 * Функция формирует список соседних процессов, тип граничных условий, выделяет память для синхронизации между процесссами.
-* \author Крюков А.А. anton.krv@gmail.com
+* \author A.Kryukov anton.krv@gmail.com
 */
 
 #include <stdlib.h>
 #include <math.h>
 
-#include "../../include/globals.h"
-#include "../../include/data.h"
+#include "globals.h"
+#include "data.h"
 
 /*!
 * Функция получения информации о разбиении области.
