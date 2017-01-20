@@ -1,14 +1,14 @@
 ﻿
 /*! \file 
-* \brief Total field / Scattered filed source model.
-* \author A.Kryukov anton.krv@gmail.com
+* \brief Функции расчета плоской падающей волны.
+* \author Крюков А.А. anton.krv@gmail.com
 */
 
 #include <math.h>
-#include "globals.h"
-#include "constants.h"
-#include "functions.h"
-#include "fdtd.h"
+#include "../../include/globals.h"
+#include "../../include/constants.h"
+#include "../../include/functions.h"
+#include "../../include/fdtd.h"
 
 static double *E;
 static double *H;

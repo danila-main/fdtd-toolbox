@@ -1,13 +1,13 @@
 ﻿
 /*! \file 
-* \brief Global data structures.
+* \brief Реализация глобальных структур данных, используемыех внутри программы.
 *
 * Данная единица компиляции содержит реализацию глобальных структур данных.
 * Для их использования необходимо подключить globals.h
-* \author A.Kryukov anton.krv@gmail.com
+* \author Крюков А.А. anton.krv@gmail.com
 */
 
-#include "data_types.h"
+#include "../../include/data_types.h"
 
 double fdtd_ht;/*!< шаг по времени. */
 double fdtd_ht05;/*!< шаг по времени между полуцелыми шагами. */
